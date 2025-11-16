@@ -54,6 +54,9 @@ Before you begin, ensure you have the following installed:
 3. Navigate to API Keys section
 4. Create a new API key
 5. Copy the key and add it to your environment variables
+6. This requires a recharge(atleast 5$). 
+7. The cost per business card comes around (1000 input tokens + 200 output tokens) ~ $0.0016 (₹0.14 per card)
+8. Can Change the model to ## Google Gemini 1.5 Flash or GPT-4o-mini which are much cheaper comparatively
 
 ### Setting Environment Variables
 
