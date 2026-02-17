@@ -3,9 +3,17 @@
   functions = "netlify/functions"
   publish = "dist"
 
+# Proxy API to Railway backend (avoids ISP blocking of Railway domains)
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  to = "https://backend-production-e79a.up.railway.app/:splat"
+  status = 200
+  force = true
+
+# SPA fallback: serve index.html for all routes so React Router works (avoids "Page not found" after login redirect)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
   status = 200
 
 

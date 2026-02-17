@@ -1,18 +1,20 @@
 # Business Card Scanner
 
-An AI-powered business card scanner application that uses OCR (Optical Character Recognition) to extract contact information from business card images. Built with React, Vite, and Netlify Functions, featuring automatic image compression, intelligent data extraction, and local storage with export capabilities.
+An AI-powered business card scanner application that uses OCR (Optical Character Recognition) to extract contact information from business card images. This application now features a multi-tenant architecture with role-based access control, cloud storage for business cards, and an admin dashboard for global management.
 
 ## 🚀 Features
 
-- **AI-Powered OCR**: Uses Anthropic Claude API for accurate text extraction from business card images
-
-- **Image Compression**: Automatically compresses images to under 3MB before processing
-- **Multiple Upload Methods**: Upload from gallery or capture directly from camera
-- **Local Storage**: All cards are stored locally in your browser
-- **Export Options**: Export your contacts as CSV or JSON
-- **Search & Filter**: Quickly find cards by name, company, email, or title
-- **Edit & Delete**: Full CRUD operations for managing your business cards
-- **Modern UI**: Beautiful dark-themed interface with smooth animations
+- **Multi-Tenant Architecture**: Supports multiple companies, each with their own users and business cards.
+- **Role-Based Access Control**: SUPER_ADMIN, ORG_ADMIN, and MEMBER roles with different permissions.
+- **AI-Powered OCR**: Uses Anthropic Claude API for accurate text extraction from business card images.
+- **Image Compression**: Automatically compresses images to under 3MB before processing.
+- **Multiple Upload Methods**: Upload from gallery or capture directly from camera.
+- **Cloud Storage**: Business cards are stored in a PostgreSQL database.
+- **Admin Dashboard**: Global view for SUPER_ADMIN to manage companies, users, and all business cards.
+- **User Dashboard**: "My Cards" and "Company Cards" views for company members.
+- **Search & Filter**: Quickly find cards by name, company, email, or title.
+- **Edit & Delete**: Full CRUD operations for managing your business cards.
+- **Modern UI**: Beautiful dark-themed interface with smooth animations.
 
 ## 📋 Prerequisites
 
@@ -20,10 +22,11 @@ Before you begin, ensure you have the following installed:
 
 - **Node.js** (v16 or higher) - [Download](https://nodejs.org/)
 - **npm** (comes with Node.js) or **yarn**
-- **Netlify CLI** (for local development and deployment) - [Installation Guide](https://docs.netlify.com/cli/get-started/)
-- **Anthropic API Key** - [Get your API key](https://console.anthropic.com/)
+- **PostgreSQL Database**: Running locally or accessible via URL.
+- **Prisma CLI**: `npm install -g prisma` (if not already installed).
+- **Anthropic API Key** (optional, for enhanced OCR) - [Get your API key](https://console.anthropic.com/)
 
-## 🛠️ Installation
+## 🛠️ Installation & Setup
 
 1. **Clone the repository**
    ```bash
@@ -31,242 +34,155 @@ Before you begin, ensure you have the following installed:
    cd business-card
    ```
 
-2. **Install dependencies**
+2. **Install root dependencies**
    ```bash
    npm install
    ```
 
-3. **Set up environment variables**
+3. **Set up backend environment variables**
 
-   For local development, create a `.env` file in the root directory:
-   ```bash
-   ANTHROPIC_API_KEY=your_anthropic_api_key_here
+   Create a `.env` file in the `backend/` directory:
+   ```env
+   DATABASE_URL="postgresql://user:password@localhost:5432/business_card_db"
+   JWT_SECRET=your_super_secret_jwt_key_here
+   # Optional: Initial Super Admin credentials for `npx prisma db seed`
+   # SUPER_ADMIN_EMAIL=admin@platform.com
+   # SUPER_ADMIN_PASSWORD=Admin123!
+   # Optional: Anthropic API Key for OCR
+   # ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
    ```
+   **Note**: For `DATABASE_URL`, replace with your PostgreSQL connection string. Ensure `JWT_SECRET` is strong.
 
-   **Note**: For Netlify deployment, you'll need to set this as an environment variable in your Netlify dashboard (see Deployment section).
+4. **Install backend dependencies, set up database, and seed initial data**
 
-## 🔑 API Key Setup
+   ```bash
+   cd backend
+   npm install
+   npx prisma migrate dev --name init
+   npx prisma db seed
+   cd ..
+   ```
+   This will:
+   - Install backend Node.js dependencies.
+   - Run Prisma migrations to create your database schema.
+   - Seed the database, creating the "Platform" organization and a SUPER_ADMIN user (`admin@platform.com` / `Admin123!` by default, or from `.env`).
 
-### Getting an Anthropic API Key
+5. **Set up frontend environment variables**
 
-1. Visit [Anthropic Console](https://console.anthropic.com/)
-2. Sign up or log in to your account
-3. Navigate to API Keys section
-4. Create a new API key
-5. Copy the key and add it to your environment variables
-
-### Setting Environment Variables
-
-#### Local Development
-
-Create a `.env` file in the project root:
-```env
-ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-**Important**: Add `.env` to your `.gitignore` file to prevent committing your API key.
-
-#### Netlify Deployment
-
-1. Go to your Netlify site dashboard
-2. Navigate to **Site settings** → **Environment variables**
-3. Click **Add variable**
-4. Set:
-   - **Key**: `ANTHROPIC_API_KEY`
-   - **Value**: Your API key
-5. Click **Save**
+   Create a `.env` file in the project root (same level as `package.json`):
+   ```env
+   VITE_API_URL=http://localhost:3000
+   ```
 
 ## 🏃 Running Locally
 
-### Development Mode (Full Stack)
+1. **Start the backend server**
 
-To run both the frontend and Netlify functions locally:
+   From the project root:
+   ```bash
+   cd backend
+   npm run start:dev
+   # Backend will run on http://localhost:3000 (or PORT from backend/.env)
+   ```
 
-```bash
-netlify dev
-```
+2. **Start the frontend development server**
 
-This will:
-- Start the Vite development server
-- Start Netlify Functions locally
-- Make the `/api/scan-card` endpoint available
-- Open the app at `http://localhost:8888`
+   In a new terminal, from the project root:
+   ```bash
+   npm run dev
+   # Frontend will run on http://localhost:5173 (default Vite port)
+   ```
 
-### Frontend Only (Vite)
+   Open your browser to `http://localhost:5173`.
 
-To run only the frontend (without Netlify functions):
+## 🧪 Testing
 
-```bash
-npm run dev
-```
-
-This starts Vite dev server at `http://localhost:5173` (default Vite port).
-
-**Note**: OCR functionality will not work in this mode as it requires the Netlify function.
-
-### Production Build
-
-Build the project for production:
+### Frontend Build
 
 ```bash
 npm run build
 ```
 
-Preview the production build:
+### Backend API Smoke Test
 
+Ensure the backend server is running (`npm run start:dev` in `backend/`).
+
+Then, run the API test script from the project root:
 ```bash
-npm run preview
+bash scripts/test-api.sh
 ```
+
+This script performs basic login, organization creation/listing, and all business cards listing to verify the backend API endpoints.
 
 ## 📁 Project Structure
 
 ```
 business-card/
-├── src/
-│   ├── App.jsx                 # Main application component
-│   ├── main.jsx                # React entry point
+├── backend/                    # NestJS backend application
+│   ├── prisma/                 # Prisma schema and seed
+│   ├── src/                    # Backend source code (modules, controllers, services, DTOs, guards)
+│   └── ...
+├── src/                        # React frontend application
+│   ├── App.jsx                 # Main application router
+│   ├── main.jsx                # React entry point with AuthProvider
 │   ├── index.css               # Global styles
-│   └── utils/
-│       └── imageCompression.js  # Image compression utility
-├── netlify/
-│   └── functions/
-│       └── scan-card.js        # Netlify serverless function for OCR
-├── dist/                       # Production build output
-├── index.html                  # HTML template
-├── netlify.toml                # Netlify configuration
-├── vite.config.js              # Vite configuration
+│   ├── api/                    # API client configuration
+│   │   └── client.js
+│   ├── components/             # Reusable React components
+│   │   └── ProtectedRoute.jsx
+│   ├── context/                # React context providers
+│   │   └── AuthContext.jsx
+│   └── pages/                  # Page-level React components
+│       ├── AdminPage.jsx
+│       ├── BusinessCardScanner.jsx # Core scanner UI, now API-driven
+│       ├── Dashboard.jsx       # User dashboard with tabs for My Cards / Company Cards
+│       │                       #   (wraps BusinessCardScanner)
+
+│       ├── Login.jsx
+│       └── Register.jsx
+├── scripts/                    # Utility scripts
+│   └── test-api.sh             # Backend API smoke test script
+├── dist/                       # Production build output for frontend
+├── public/                     # Static assets for frontend
+├── package.json                # Root dependencies and scripts
+├── vite.config.js              # Vite configuration for frontend
 ├── tailwind.config.js          # Tailwind CSS configuration
 ├── postcss.config.js           # PostCSS configuration
-├── package.json                # Dependencies and scripts
 └── README.md                   # This file
 ```
 
 ## 🚢 Deployment
 
-### Deploy to Netlify
+This project is designed for flexible deployment. The frontend can be deployed statically (e.g., Netlify, Vercel) pointing to a separately deployed backend (e.g., on a VPS, Render, or a serverless platform).
 
-1. **Install Netlify CLI** (if not already installed):
+**Note**: The original `netlify/functions/scan-card.js` is no longer used for API-driven card management but remains for historical context or if you wish to re-integrate Netlify Functions for OCR specifically.
+
+### Building for Production
+
+1. **Build Frontend**
    ```bash
-   npm install -g netlify-cli
+   npm run build
    ```
+   This creates the `dist/` directory with static frontend assets.
 
-2. **Login to Netlify**:
+2. **Build Backend**
    ```bash
-   netlify login
+   cd backend
+   npm run build
    ```
+   This creates the `backend/dist/` directory with compiled NestJS code.
 
-3. **Initialize Netlify** (if not already initialized):
-   ```bash
-   netlify init
-   ```
+### Deployment Steps (Example: Separate Frontend and Backend)
 
-4. **Set environment variable in Netlify**:
-   - Go to your Netlify site dashboard
-   - Navigate to **Site settings** → **Environment variables**
-   - Add `ANTHROPIC_API_KEY` with your API key value
+**Backend Deployment:**
+- Deploy the contents of `backend/dist` to a Node.js server environment (e.g., a VPS, Docker container, or managed service).
+- Ensure `DATABASE_URL`, `JWT_SECRET`, and `ANTHROPIC_API_KEY` (if used) are set as environment variables in your hosting environment.
+- Run database migrations and seed on deployment (`npx prisma migrate deploy` and `npx prisma db seed`).
 
-5. **Deploy to production**:
-   ```bash
-   netlify deploy --prod
-   ```
+**Frontend Deployment:**
+- Deploy the contents of the top-level `dist` directory (generated by `npm run build`) to a static hosting service (e.g., Netlify, Vercel, Cloudflare Pages).
 
-   Or deploy a preview:
-   ```bash
-   netlify deploy
-   ```
-
-### Alternative: Deploy via Git
-
-1. Connect your GitHub/GitLab repository to Netlify
-2. Set build command: `npm run build`
-3. Set publish directory: `dist`
-4. Add `ANTHROPIC_API_KEY` environment variable in Netlify dashboard
-5. Netlify will automatically deploy on every push to your main branch
-
-## 🔧 Configuration
-
-### Netlify Configuration (`netlify.toml`)
-
-The project includes a `netlify.toml` file that configures:
-- Build command and output directory
-- Function directory
-- API route redirects
-
-### Vite Configuration
-
-The Vite config (`vite.config.js`) sets up:
-- React plugin
-- Build output directory
-
-## 📦 Dependencies
-
-### Production Dependencies
-- `react` ^18.2.0 - React library
-- `react-dom` ^18.2.0 - React DOM rendering
-- `tesseract.js` ^6.0.1 - OCR fallback library
-- `lucide-react` ^0.263.1 - Icon library
-
-### Development Dependencies
-- `vite` ^5.0.0 - Build tool and dev server
-- `@vitejs/plugin-react` ^4.2.1 - React plugin for Vite
-- `tailwindcss` ^3.4.0 - Utility-first CSS framework
-- `autoprefixer` ^10.4.16 - CSS post-processor
-- `postcss` ^8.4.32 - CSS transformer
-
-## 🎯 Usage
-
-1. **Upload a Business Card**:
-   - Click "Take Photo" to capture with your camera
-   - Or click "From Gallery" to upload an existing image
-
-2. **Automatic Processing**:
-   - Image is automatically compressed if needed
-   - OCR extracts contact information
-   - Card is saved to local storage
-
-3. **Manage Cards**:
-   - Click on a card to view details
-   - Use the edit button to modify information
-   - Use the delete button to remove cards
-   - Use the search bar to find specific cards
-
-4. **Export Data**:
-   - Click "Export CSV" to download contacts as CSV
-   - Use browser DevTools to access localStorage for JSON export
-
-## 🐛 Troubleshooting
-
-### OCR Not Working
-
-- **Check API Key**: Ensure `ANTHROPIC_API_KEY` is set correctly
-- **Check API Credits**: Verify you have sufficient credits in your Anthropic account
-- **Check Network**: Ensure you can reach the Anthropic API
-- **Check Logs**: Use `netlify dev` and check the terminal for error messages
-
-### Image Upload Issues
-
-- **File Size**: Images are automatically compressed, but very large images may take time
-- **File Format**: Supported formats: JPEG, PNG, WebP, GIF
-- **Browser Compatibility**: Ensure your browser supports FileReader API
-
-### Local Development Issues
-
-- **Port Conflicts**: If port 8888 is in use, Netlify will suggest an alternative
-- **Function Errors**: Check the terminal output when running `netlify dev`
-- **Build Errors**: Run `npm run build` to check for compilation errors
-
-### Netlify Deployment Issues
-
-- **Environment Variables**: Ensure `ANTHROPIC_API_KEY` is set in Netlify dashboard
-- **Build Failures**: Check Netlify build logs for errors
-- **Function Timeout**: Netlify functions have a 10-second timeout limit
-
-## 🔒 Security Notes
-
-- **Never commit API keys**: Always use environment variables
-- **Add `.env` to `.gitignore`**: Prevent accidental commits of sensitive data
-- **Use Netlify Environment Variables**: For production deployments
-- **API Key Rotation**: Regularly rotate your API keys for security
+- Set the `VITE_API_URL` environment variable in your frontend hosting environment to point to your deployed backend's API URL (e.g., `https://your-backend-api.com`).
 
 ## 📝 License
 
@@ -286,12 +202,10 @@ For issues and questions:
 
 - [Anthropic](https://www.anthropic.com/) for Claude API
 - [Tesseract.js](https://tesseract.projectnaptha.com/) for OCR fallback
-- [Netlify](https://www.netlify.com/) for serverless functions hosting
-
----
-
-**Note**: This project uses localStorage for data persistence. Data is stored locally in your browser and will be cleared if you clear browser data or use incognito mode. Consider implementing cloud storage for production use.
-
+- [NestJS](https://nestjs.com/) for the backend framework
+- [React](https://react.dev/) for the frontend library
+- [Vite](https://vitejs.dev/) for the frontend build tool
+- [Prisma](https://www.prisma.io/) for the ORM
 
 
 
